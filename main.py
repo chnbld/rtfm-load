@@ -28,8 +28,10 @@ if __name__ == '__main__':
 
     model = Model(args.feature_size, args.batch_size)
     if args.pretrained_ckpt is not None:
+        #checkpoint = torch.load(args.pretrained_ckpt)
+        #model.load_state_dict(checkpoint['model_state_dict'])
         model.load_state_dict(torch.load(args.pretrained_ckpt))
-    model.eval()
+        model.eval()
 
     for name, value in model.named_parameters():
         print(name)
@@ -41,7 +43,9 @@ if __name__ == '__main__':
 
     optimizer = optim.Adam(model.parameters(),
                             lr=config.lr[0], weight_decay=0.005)
-    
+    #if args.pretrained_ckpt is not None:
+    #    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
     test_info = {"epoch": [], "test_AUC": []}
     best_AUC = 0.9592266603083273
     output_path = ''   # put your own path here
@@ -70,6 +74,6 @@ if __name__ == '__main__':
             if test_info["test_AUC"][-1] > best_AUC:
                 best_AUC = test_info["test_AUC"][-1]
                 torch.save({'model_state_dict':model.state_dict(),'optimizer_state_dict':optimizer.state_dict(),'epoch':step}, './ckpt/' + args.model_name + '{}-i3d-n.pkl'.format(step))
-                save_best_record(test_info, os.path.join(output_path, '{}-step-AUC.txt'.format(step)))
+                save_best_record(test_info, os.path.join(output_path, '{}-step-AUC-n.txt'.format(step)))
     torch.save(model.state_dict(), './ckpt/' + args.model_name + 'final.pkl')
 
