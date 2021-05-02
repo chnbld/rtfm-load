@@ -171,7 +171,7 @@ class Aggregate(nn.Module):
             return out
 
 class Model(nn.Module):
-    def __init__(self, n_features, batch_size):
+    def __init__(self, n_features=32, batch_size=16):
         super(Model, self).__init__()
         self.batch_size = batch_size
         self.num_segments = 32
@@ -188,6 +188,7 @@ class Model(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.apply(weight_init)
 
+    
     def forward(self, inputs):
 
         k_abn = self.k_abn
