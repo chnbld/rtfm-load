@@ -11,6 +11,7 @@ def test(dataloader, model, args, viz, device):
         for i, input in enumerate(dataloader):
             input = input.to(device)
             input = input.permute(0,2,1,3)
+            #print(f'testcrop input_________________{input.shape}')
             score_abnormal, score_normal, feat_select_abn, feat_select_normal, feat_abn_bottom, feat_select_normal_bottom, logits, \
             scores_nor_bottom, scores_nor_abn_bag, feat_magnitudes = model(inputs=input)
 

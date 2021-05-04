@@ -6,7 +6,6 @@ from torch.nn import L1Loss
 from torch.nn import MSELoss
 
 
-
 def sparsity(arr, batch_size, lamda2):
     loss = torch.mean(torch.norm(arr, dim=0))
     return lamda2*loss
@@ -70,6 +69,7 @@ class RTFM_loss(torch.nn.Module):
 
         loss_abn = torch.abs(self.margin - torch.norm(torch.mean(feat_a, dim=1), p=2, dim=1))
         loss_nor = torch.norm(torch.mean(feat_n, dim=1), p=2, dim=1)
+        #print(f'feat_n:{feat_n.shape} mean:{torch.norm(torch.mean(feat_n,dim=1),p=2,dim=1).shape}')
 
         loss_um = torch.mean((loss_abn + loss_nor) ** 2)
 
@@ -108,10 +108,17 @@ def train(nloader, aloader, model, batch_size, optimizer, viz, device):
 
         ninput, nlabel = next(nloader)
         ainput, alabel = next(aloader)
+        
+        #print(f'ninput:{ninput.shape} ainput:{ainput.shape}')
 
         input = torch.cat((ninput, ainput), 0).to(device)
+        #print(f'input shape:{input.shape}')
 
         score_abnormal, score_normal, feat_select_abn, feat_select_normal, feat_abn_bottom, feat_normal_bottom, scores, scores_nor_bottom, scores_nor_abn_bag,_ = model(input)  # b*32  x 2048
+        
+        #rawfeatures=np.asarray(arawfeatures.cpu().detach()
+        #print(f'iiiiiiiiiiiiiiiiiiiiiii:{distance_loss}')
+
         scores = scores.view(batch_size * 32 * 2, -1)
 
         scores = scores.squeeze()
@@ -123,7 +130,7 @@ def train(nloader, aloader, model, batch_size, optimizer, viz, device):
         loss_criterion = RTFM_loss(0.0001, 100)
         loss_sparse = sparsity(abn_scores, batch_size, 8e-3)
         loss_smooth = smooth(abn_scores, 8e-4)
-        cost = loss_criterion(score_normal, score_abnormal, nlabel, alabel, feat_select_normal, feat_select_abn, viz, scores_nor_bottom, scores_nor_abn_bag) + loss_smooth + loss_sparse
+        cost = loss_criterion(score_normal, score_abnormal, nlabel, alabel, feat_select_normal, feat_select_abn, viz, scores_nor_bottom, scores_nor_abn_bag) + loss_smooth #+ loss_sparse
 
         #viz.plot_lines('loss', cost.item())
         #viz.plot_lines('smoothnes loss', loss_smooth.item())

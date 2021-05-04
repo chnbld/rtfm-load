@@ -38,6 +38,10 @@ class Dataset(data.Dataset):
         label = self.get_label(index) # get video level label 0/1
         features = np.load(self.list[index].strip('\n'), allow_pickle=True)
         features = np.array(features, dtype=np.float32)
+        #print(features.shape)
+        features = features[:,None,:]
+        #features = np.transpose(features,(1,0,2))
+        #print(features.shape)
 
         if self.tranform is not None:
             features = self.tranform(features)
@@ -50,7 +54,8 @@ class Dataset(data.Dataset):
                 feature = process_feat(feature, 32)
                 divided_features.append(feature)
             divided_features = np.array(divided_features, dtype=np.float32)
-
+            
+            #print(divided_features.shape)
             return divided_features, label
 
     def get_label(self, index):

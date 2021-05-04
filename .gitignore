@@ -16,6 +16,8 @@ dataset-c3d/
 SH_Test_ten_crop_i3d/
 SH_Train_ten_crop_i3d/
 ckpt/
+Train/
+c3d-test/
 
 # Compiled Java class files
 *.class

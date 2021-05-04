@@ -47,7 +47,7 @@ if __name__ == '__main__':
     #    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
     test_info = {"epoch": [], "test_AUC": []}
-    best_AUC = 0.9592266603083273
+    best_AUC = -1
     output_path = ''   # put your own path here
     auc = test(test_loader, model, args, viz, device)
 
@@ -64,7 +64,7 @@ if __name__ == '__main__':
             loadern_iter = iter(train_nloader)
         if (step - 1) % len(train_aloader) == 0:
             loadera_iter = iter(train_aloader)
-
+        
         train(loadern_iter, loadera_iter, model, args.batch_size, optimizer, viz, device)
 
         if step % 5 == 0 and step > 200:

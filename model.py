@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.init as torch_init
+import numpy as np
+from kmeans_pytorch import kmeans
+from scipy.spatial import distance
 torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
 def weight_init(m):
@@ -113,41 +116,41 @@ class Aggregate(nn.Module):
         bn = nn.BatchNorm1d
         self.len_feature = len_feature
         self.conv_1 = nn.Sequential(
-            nn.Conv1d(in_channels=len_feature, out_channels=512, kernel_size=3,
+            nn.Conv1d(in_channels=len_feature, out_channels=1024, kernel_size=3,
                       stride=1,dilation=1, padding=1),
             nn.ReLU(),
-            bn(512)
+            bn(1024)
             # nn.dropout(0.7)
         )
         self.conv_2 = nn.Sequential(
-            nn.Conv1d(in_channels=len_feature, out_channels=512, kernel_size=3,
+            nn.Conv1d(in_channels=len_feature, out_channels=1024, kernel_size=3,
                       stride=1, dilation=2, padding=2),
             nn.ReLU(),
-            bn(512)
+            bn(1024)
             # nn.dropout(0.7)
         )
         self.conv_3 = nn.Sequential(
-            nn.Conv1d(in_channels=len_feature, out_channels=512, kernel_size=3,
+            nn.Conv1d(in_channels=len_feature, out_channels=1024, kernel_size=3,
                       stride=1, dilation=4, padding=4),
             nn.ReLU(),
-            bn(512)
+            bn(1024)
             # nn.dropout(0.7),
         )
         self.conv_4 = nn.Sequential(
-            nn.Conv1d(in_channels=2048, out_channels=512, kernel_size=1,
+            nn.Conv1d(in_channels=4096, out_channels=1024, kernel_size=1,
                       stride=1, padding=0, bias = False),
             nn.ReLU(),
             # nn.dropout(0.7),
         )
         self.conv_5 = nn.Sequential(
-            nn.Conv1d(in_channels=2048, out_channels=2048, kernel_size=3,
+            nn.Conv1d(in_channels=4096, out_channels=4096, kernel_size=3,
                       stride=1, padding=1, bias=False), # should we keep the bias?
             nn.ReLU(),
-            nn.BatchNorm1d(2048),
+            nn.BatchNorm1d(4096),
             # nn.dropout(0.7)
         )
 
-        self.non_local = NONLocalBlock1D(512, sub_sample=False, bn_layer=True)
+        self.non_local = NONLocalBlock1D(1024, sub_sample=False, bn_layer=True)
 
 
     def forward(self, x):
@@ -178,9 +181,9 @@ class Model(nn.Module):
         self.k_abn = self.num_segments // 10
         self.k_nor = self.num_segments // 10
 
-        self.Aggregate = Aggregate(len_feature=2048)
-        self.fc1 = nn.Linear(n_features, 512)
-        self.fc2 = nn.Linear(512, 128)
+        self.Aggregate = Aggregate(len_feature=4096)
+        self.fc1 = nn.Linear(n_features, 1024)
+        self.fc2 = nn.Linear(1024, 128)
         self.fc3 = nn.Linear(128, 1)
 
         self.drop_out = nn.Dropout(0.7)
@@ -196,7 +199,7 @@ class Model(nn.Module):
 
         out = inputs
         bs, ncrops, t, f = out.size()
-
+        
         out = out.view(-1, t, f)
 
         out = self.Aggregate(out)
@@ -212,17 +215,22 @@ class Model(nn.Module):
         scores = scores.view(bs, ncrops, -1).mean(1)
         scores = scores.unsqueeze(dim=2)
 
-
-        normal_features = features[0:self.batch_size*10]
+        normal_features = features[0:self.batch_size]
         normal_scores = scores[0:self.batch_size]
+        #print(f'normal_features:{normal_features.shape} normal_scores:{normal_scores.shape}')
 
-        abnormal_features = features[self.batch_size*10:]
+        abnormal_features = features[self.batch_size:]
         abnormal_scores = scores[self.batch_size:]
-
+        #print(f'abnormal_features:{abnormal_features.shape} abnormal_scores:{abnormal_scores.shape}')
+        
         feat_magnitudes = torch.norm(features, p=2, dim=2)
+        #print(f'feat_magnitudes:{feat_magnitudes.shape}')
         feat_magnitudes = feat_magnitudes.view(bs, ncrops, -1).mean(1)
+        #print(f'feat_magnitudes2:{feat_magnitudes.shape}')
         nfea_magnitudes = feat_magnitudes[0:self.batch_size] # normal feature magnitudes
+        #print(f'nfeat_magnitudes:{nfea_magnitudes.shape}')
         afea_magnitudes = feat_magnitudes[self.batch_size:] # abnormal feature magnitudes
+        #print(f'afea_magnitudes:{afea_magnitudes.shape}')
         n_size = nfea_magnitudes.shape[0]
 
         if nfea_magnitudes.shape[0] == 1:  # this is for inference
@@ -271,5 +279,6 @@ class Model(nn.Module):
 
         feat_select_abn = total_select_abn_feature
         feat_select_normal = total_select_nor_feature
-
+        
+        #print(f'train l299:{arawfeatures.shape},{nrawfeatures.shape}')
         return score_abnormal, score_normal, feat_select_abn, feat_select_normal, feat_select_abn, feat_select_abn, scores, feat_select_abn, feat_select_abn, feat_magnitudes
