@@ -155,9 +155,7 @@ class Aggregate(nn.Module):
 
     def forward(self, x):
             # x: (B, T, F)
-
             out = x.permute(0, 2, 1)
-            print(f'early out:{out.shape}')
             residual = out
 
             out1 = self.conv_1(out)
@@ -171,7 +169,6 @@ class Aggregate(nn.Module):
             out = self.conv_5(out)   # fuse all the features together
             out = out + residual
             out = out.permute(0, 2, 1)
-            print(f'late out:{out.shape}')
             # out: (B, T, 1)
 
             return out
@@ -205,7 +202,7 @@ class Model(nn.Module):
         
         out = out.view(-1, t, f)
 
-        #out = self.Aggregate(out)
+        out = self.Aggregate(out)
 
         out = self.drop_out(out)
 

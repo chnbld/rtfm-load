@@ -18,7 +18,11 @@ SH_Train_ten_crop_i3d/
 ckpt/
 Train/
 c3d-test/
+0503/
+c3d/
+ucf-c3d/
 
+*.pkl
 # Compiled Java class files
 *.class
 

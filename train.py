@@ -130,7 +130,7 @@ def train(nloader, aloader, model, batch_size, optimizer, viz, device):
         loss_criterion = RTFM_loss(0.0001, 100)
         loss_sparse = sparsity(abn_scores, batch_size, 8e-3)
         loss_smooth = smooth(abn_scores, 8e-4)
-        cost = loss_criterion(score_normal, score_abnormal, nlabel, alabel, feat_select_normal, feat_select_abn, viz, scores_nor_bottom, scores_nor_abn_bag) + loss_smooth #+ loss_sparse
+        cost = loss_criterion(score_normal, score_abnormal, nlabel, alabel, feat_select_normal, feat_select_abn, viz, scores_nor_bottom, scores_nor_abn_bag) + loss_smooth + loss_sparse
 
         #viz.plot_lines('loss', cost.item())
         #viz.plot_lines('smoothnes loss', loss_smooth.item())

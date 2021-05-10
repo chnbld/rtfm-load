@@ -19,12 +19,17 @@ def test(dataloader, model, args, viz, device):
             logits = torch.mean(logits, 0)
 
             sig = logits
+            #print(f'i={i+1}')
+            #for l in sig:
+            #    print(l)
 
             pred = torch.cat((pred, sig))
 
         gt = np.load(args.gt)
         pred = list(pred.cpu().detach().numpy())
         pred = np.repeat(np.array(pred), 16)
+        #for l in pred:
+        #    print(l)
 
         fpr, tpr, threshold = roc_curve(list(gt), pred)
         np.save('fpr.npy', fpr)
